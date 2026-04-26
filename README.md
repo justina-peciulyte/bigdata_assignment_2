@@ -66,10 +66,6 @@ An input CSV file (MMSI, Timestamp, Latitude, Longitude, Type of mobile columns 
 | --chunksize | Number of rows per chunk for processing (*default: 50000*).           |
 | --workers   | Number of worker processes to use (*default: 4, sequential mode: 1*). |
 
-### Expected Output
-
-The tool prints a compact summary of the analyzed file, as well as saves vessel anomaly results to a CSV if output file is specified. 
-
 ### Run Instructions
 
 1. Download the image:
