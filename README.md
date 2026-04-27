@@ -33,7 +33,7 @@ While the Docker image creation relies on:
 
 The Docker image was created using the following steps:
 
-1.  Initialized the project by creating necessary files (Dockerfile, .dockerignore) using basic defaults provided by the CLI command 
+1.  Initialized the project by creating necessary files (Dockerfile, .dockerignore) using basic defaults provided by the CLI command: 
 
 ```
   docker init
