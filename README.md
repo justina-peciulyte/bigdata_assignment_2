@@ -4,14 +4,30 @@ Author: Justina Pečiulytė, <justina.peciulyte@mif.stud.vu.lt>
 
 ### Overview
 
-This project packages a simple command-line AIS data anomaly scanner as a Docker container. The implementation is based on the architecture originally developed for the first group assignment and relies on multiprocessing to analyze large datasets. With containerization, the user does not need to install Python or any dependencies on their machine -- the tool becomes more portable.
+This project packages a simple command-line AIS data anomaly scanner as a Docker container. The implementation is based on the architecture originally developed for the first group assignment and relies on multiprocessing to efficiently analyze large datasets in parallel. With containerization, the user does not need to install Python or any dependencies on their machine -- the tool becomes more portable.
 
 The application processes vessel movement data from AIS CSV files, performs validity checks, detects suspicious behavior, and returns a clean summary and an output file containing all flagged vessels. To demonstrate the functionality, two types of anomaly checks are included:
 
--   **"Going dark" anomaly**. Detects gaps longer than 4 hours between AIS where the vessel appears to have continued moving.
--   **Identity cloning/teleportation anomaly**. Detects unrealistic vessel movement by using geographic distance between consecutive pings to calculate speed.
+-   **"Going dark" anomaly**. Detects gaps longer than 4 hours between AIS signals where the vessel appears to have continued moving.
+-   **Identity cloning/teleportation anomaly**. Detects unrealistic vessel movement by calculating speed based on geographic distance between consecutive pings.
 
 The image is available on the Docker Hub image registry: <https://hub.docker.com/r/justinap4/ais_scanner>.
+The Python scripts, Dockerfile, and requirements.txt are available on GitHub: <https://github.com/justina-peciulyte/bigdata_assignment_2>
+
+### Project Structure
+
+The project's data processing pipeline is structured as follows:
+
+-  **main.py** - entry point of the project. Controls multiprocessing and aggregates partial results to a final output.
+-  **reader.py** - reads AIS data in chunks using byte ranges.
+-  **worker.py** - processes vessel tracks, applies anomaly checks, and returns partial vessel-level results.
+-  **anomaly_module.py** - contains anomaly detection logic.
+-  **haversine_dist.py** - helper function for calculating geographic distance between pings.
+
+While the Docker image creation relies on:
+
+-  **Dockerfile** - defines the container image.
+-  **requirements.txt** - contains Python dependencies.
 
 ### Docker Image Creation
 
@@ -24,20 +40,27 @@ The Docker image was created using the following steps:
 ```
 
 2.  Created a requirements.txt file using the `pipreqs` package.
-4.  Specified additional files to be skipped during the bulding process in .dockerignore file.
+3.  Specified additional files to be skipped during the bulding process in .dockerignore file.
 
-5.  In the Dockerfile, set the needed parameters: 
+4.  In the Dockerfile, set the needed parameters: 
 
     Selected a suitable lightweight base image:
 
-    ```         
-      FROM python:${3.13.7}-slim AS base
+    ```
+      ARG PYTHON_VERSION=3.13.7       
+      FROM python:${PYTHON_VERSION}-slim AS base
     ```
 
     Specified the working directory inside the container:
 
     ```         
        WORKDIR /app
+    ```
+    
+    Copied the source files into the container:
+
+    ```         
+       COPY . .
     ```
 
     Defined the entry point to run the application:
@@ -46,7 +69,7 @@ The Docker image was created using the following steps:
       ENTRYPOINT ["python", "main.py"]
     ```
 
-6.  Built the Docker image using the CLI command:
+5.  Built the Docker image using the CLI command:
 
 ```         
    docker build -t ais_scanner .
@@ -73,7 +96,7 @@ An input CSV file (MMSI, Timestamp, Latitude, Longitude, Type of mobile columns 
   docker pull justinap4/ais_scanner:latest
 ```
 
-2. Check configurable parameters:
+2. Check configurable parameters with the built-in help interface:
 ```       
   docker run --rm justinap4/ais_scanner --help
 ```
@@ -83,7 +106,7 @@ An input CSV file (MMSI, Timestamp, Latitude, Longitude, Type of mobile columns 
   docker run --rm -v ${PWD}:/data justinap4/ais_scanner --input /data/sample_data.csv
 ```
 
-Here, `-v $(pwd):/data` mounts local files into the container and `/data/sample_data.csv` is the input file inside the container.
+Here, `-v $(pwd):/data` (or `-v $(pwd):/data` on Linux/Mac) mounts local files into the container and `/data/sample_data.csv` is the input file inside the container.
 
 ### Challenges Encountered
 
